@@ -1,16 +1,17 @@
 #include "io.h"
 
-#include <fstream>
-#include <vector>
-
 using namespace std;
 
-static std::vector<char> readFile(const string& filename)
+vector<char> readFile(const string& filename)
 {
     ifstream file(filename, ios::ate | ios::binary);
 
     if (!file.is_open())
-        throw runtime_error("failed to open file!");
+    {
+        std::stringstream error_message;
+        error_message << "failed to open file " << filename << "!";
+        throw runtime_error(error_message.str());
+    }
 
     size_t fileSize = (size_t) file.tellg();
     vector<char> buffer(fileSize);
