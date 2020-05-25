@@ -4,6 +4,7 @@
       <w>glfw</w>
       <w>glslc</w>
       <w>shaders</w>
+      <w>vert</w>
     </words>
   </dictionary>
 </component>
