@@ -2,6 +2,8 @@
   <dictionary name="Tima">
     <words>
       <w>glfw</w>
+      <w>glslc</w>
+      <w>shaders</w>
     </words>
   </dictionary>
 </component>
