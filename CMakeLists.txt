@@ -5,9 +5,15 @@ set(PROJECT_NAME hello_vulkan)
 
 project(${PROJECT_NAME})
 
-add_executable(${PROJECT_NAME} src/main.cpp)
+message("Finding executables to build...")
 
+file(GLOB_RECURSE source_files src/*.cpp)
+foreach(source_file ${source_files})
+    message("\t${source_file}")
+endforeach()
+add_executable(${PROJECT_NAME} ${source_files})
 
+message("Setting up dependencies...")
 # Vulkan setup
 find_package(Vulkan REQUIRED FATAL_ERROR)
 target_link_libraries(${PROJECT_NAME} Vulkan::Vulkan)
@@ -20,5 +26,7 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 add_subdirectory($ENV{GLFW_PATH_SOURCE} $ENV{GLFW_PATH_BIN})
 target_link_libraries(${PROJECT_NAME} glfw)
+
+message("Done.")
 
 # TODO GLM setup

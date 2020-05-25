@@ -1,44 +1,18 @@
 #define GLFW_INCLUDE_VULKAN
+
 #include <GLFW/glfw3.h>
 
 #include <iostream>
 #include <stdexcept>
-#include <cstdint>
 #include <cstdlib>
 #include <vector>
 #include <optional>
 #include <set>
 #include <algorithm>
-#include <fstream>
 
+#include "utils/vk_debug.h"
+#include "utils/io.h"
 
-
-VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) 
-{
-    auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-    
-    if (func != nullptr) 
-        return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
-    
-    return VK_ERROR_EXTENSION_NOT_PRESENT;
-}
-
-
-void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) 
-{
-    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-
-    if (func != nullptr)
-        func(instance, debugMessenger, pAllocator);
-} 
-
-static std::vector<char> readFile(const std::string& filename) 
-{
-    std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
-    if (!file.is_open()) 
-        throw std::runtime_error("failed to open file!");
-}
 
 
 class HelloTriangleApplication 
