@@ -77,6 +77,9 @@ class HelloTriangleApplication
         VkDebugUtilsMessengerEXT debugMessenger;
 
 
+        VkSemaphore imageAvailableSemaphore;
+        VkSemaphore renderFinishedSemaphore;
+
         void initWindow()
         {
             glfwInit();
@@ -100,17 +103,26 @@ class HelloTriangleApplication
             createFramebuffers();
             createCommandPool();
             createCommandBuffers();
+            createSemaphores();
         }
 
         void mainLoop()
         {
             while (!glfwWindowShouldClose(window))
+            {
                 glfwPollEvents();
+                drawFrame();
+            }
 
+            vkDeviceWaitIdle(device);
         }
+
 
         void cleanup()
         {
+            vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
+            vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
+
             vkDestroyCommandPool(device, commandPool, nullptr);
 
             for (auto framebuffer : swapChainFramebuffers)
@@ -928,8 +940,73 @@ class HelloTriangleApplication
                 result = vkEndCommandBuffer(commandBuffers[i]);
                 if (result != VK_SUCCESS)
                     throw std::runtime_error("failed to record command buffer!");
-                
+
             }
+        }
+
+        void createSemaphores()
+        {
+            VkSemaphoreCreateInfo semaphoreInfo{};
+            semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+            VkResult result = vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphore);
+            if (result != VK_SUCCESS)
+                throw std::runtime_error("failed to create imageAvailableSemaphore!");
+
+            result = vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphore);
+            if (result != VK_SUCCESS)
+                throw std::runtime_error("failed to create renderFinishedSemaphore!");
+        }
+
+
+        void drawFrame()
+        {
+            uint32_t imageIndex;
+            vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+            VkSubmitInfo submitInfo{};
+            submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+            VkSemaphore waitSemaphores[] = {imageAvailableSemaphore};
+            VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+            submitInfo.waitSemaphoreCount = 1;
+            submitInfo.pWaitSemaphores = waitSemaphores;
+            submitInfo.pWaitDstStageMask = waitStages;
+
+            submitInfo.commandBufferCount = 1;
+            submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
+
+            VkSemaphore signalSemaphores[] = {renderFinishedSemaphore};
+            submitInfo.signalSemaphoreCount = 1;
+            submitInfo.pSignalSemaphores = signalSemaphores;
+
+            VkResult result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+            if (result != VK_SUCCESS)
+                throw std::runtime_error("failed to submit draw command buffer!");
+
+            VkSubpassDependency dependency{};
+            dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+            dependency.dstSubpass = 0;
+            dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            dependency.srcAccessMask = 0;
+            dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+
+            VkPresentInfoKHR presentInfo{};
+            presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+            presentInfo.waitSemaphoreCount = 1;
+            presentInfo.pWaitSemaphores = signalSemaphores;
+
+            VkSwapchainKHR swapChains[] = {swapChain};
+            presentInfo.swapchainCount = 1;
+            presentInfo.pSwapchains = swapChains;
+            presentInfo.pImageIndices = &imageIndex;
+            presentInfo.pResults = nullptr;
+
+            vkQueuePresentKHR(presentQueue, &presentInfo);
+
+            vkDeviceWaitIdle(device);  // FIXME not optimal
         }
 };
 
