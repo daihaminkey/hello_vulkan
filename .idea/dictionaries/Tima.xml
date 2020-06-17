@@ -3,7 +3,11 @@
     <words>
       <w>glfw</w>
       <w>glslc</w>
+      <w>multisampling</w>
+      <w>rasterizer</w>
       <w>shaders</w>
+      <w>subpass</w>
+      <w>vert</w>
     </words>
   </dictionary>
 </component>
